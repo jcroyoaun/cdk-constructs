@@ -1,0 +1,19 @@
+aws_account: "637423635181"
+aws_region: us-east-1
+
+
+vpc:
+  name: MainVPC
+  cidr: 10.24.0.0/16
+  maxAzs: 2
+  natGateways: 1
+  subnets:
+    public:
+      name: Public
+      cidr: 24
+    private:
+      name: Private
+      cidr: 20
+    db:
+      name: Database
+      cidr: 24
