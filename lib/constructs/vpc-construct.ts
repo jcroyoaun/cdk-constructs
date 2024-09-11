@@ -1,23 +1,13 @@
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
-import { ConfigProvider } from '../utils/config-loader';
-
-export interface VpcConstructProps {
-  env: string;
-}
 
 export class VpcConstruct extends Construct {
   public readonly vpc: ec2.Vpc;
 
-  constructor(scope: Construct, id: string, props: VpcConstructProps) {
+  constructor(scope: Construct, id: string, props: any) {
     super(scope, id);
 
-    const config = ConfigProvider.getInstance(props.env).getConfig();
-    const vpcConfig = config.vpc;
-
-    if (!vpcConfig) {
-      throw new Error('VPC configuration not found');
-    }
+    const vpcConfig = props.config;
 
     this.vpc = new ec2.Vpc(this, `${props.env}-${vpcConfig.name}`, {
       ipAddresses: ec2.IpAddresses.cidr(vpcConfig.cidr),
