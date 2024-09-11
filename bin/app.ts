@@ -7,25 +7,27 @@ const app = new cdk.App();
 const env = app.node.tryGetContext('env') || 'dev';
 const config = YamlReader.readValue(env);
 
-// Get the AWS account and region from the config
+// AWS config
 const awsAccount = config.aws_account;
 const awsRegion = config.aws_region;
 
-const constructMap: { [key: string]: new (scope: cdk.App, id: string, props: any) => cdk.Construct } = {
+type ConstructClass = new (scope: cdk.Stack, id: string, props: any) => cdk.Construct;
+const constructMap: { [key: string]: ConstructClass } = {
   vpc: VpcConstruct,
   // ...
 };
 
-const createdConstructs: { [key: string]: cdk.Construct } = {};
-
-Object.keys(constructMap).forEach((key) => {
+Object.entries(constructMap).forEach(([key, ConstructClass]) => {
   const constructConfig = config.get(key)
 
   if (!constructConfig) {
+    console.log(`No configuration found for ${key}, skipping...`);
     return;
   }
 
   const cdkName = `${env}-${key.charAt(0).toUpperCase() + key.slice(1)}`
+
+  //Create Stack
   const stack = new cdk.Stack(app, `${cdkName}Stack`, {
     env: {
       account: awsAccount,
@@ -33,8 +35,8 @@ Object.keys(constructMap).forEach((key) => {
     }
   });
 
-  const ConstructClass = constructMap[key];
-  createdConstructs[key] = new ConstructClass(stack, `${cdkName}Construct`, {
+  //Create Construct
+  new ConstructClass(stack, `${cdkName}Construct`, {
     config: constructConfig,
     env: env
   });
