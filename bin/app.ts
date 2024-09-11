@@ -21,22 +21,24 @@ const createdConstructs: { [key: string]: cdk.Construct } = {};
 Object.keys(constructMap).forEach((key) => {
   const constructConfig = config.get(key)
 
-  if (constructConfig) {
-    const cdkName = `${env}-${key.charAt(0).toUpperCase() + key.slice(1)}`
-
-    const stack = new cdk.Stack(app, `${cdkName}Stack`, {
-      env: {
-        account: awsAccount,
-        region: awsRegion
-      }
-    });
-
-    const ConstructClass = constructMap[key];
-    createdConstructs[key] = new ConstructClass(stack, `${cdkName}Construct`, {
-      config: constructConfig,
-      env: env
-    });
+  if (!constructConfig) {
+    return;
   }
+
+  const cdkName = `${env}-${key.charAt(0).toUpperCase() + key.slice(1)}`
+  const stack = new cdk.Stack(app, `${cdkName}Stack`, {
+    env: {
+      account: awsAccount,
+      region: awsRegion
+    }
+  });
+
+  const ConstructClass = constructMap[key];
+  createdConstructs[key] = new ConstructClass(stack, `${cdkName}Construct`, {
+    config: constructConfig,
+    env: env
+  });
+  
 });
 
 app.synth();
