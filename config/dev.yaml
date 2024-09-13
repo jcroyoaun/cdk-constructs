@@ -2,7 +2,7 @@ aws_account: "637423635181"
 aws_region: us-east-1
 
 vpc:
-  name: dev-vpc
+  name: vpc-dev
   cidr: 10.24.0.0/16
   maxAzs: 2
   natGateways: 1
@@ -14,11 +14,11 @@ vpc:
       name: Private
       cidr: 20
     db:
-      name: Database
+      name: DB
       cidr: 24
 
 eks:
-  clusterName: ms-eks-develop
+  clusterName: ms-eks-dev
   version: "1.30"
   NodeGroup:
     instanceTypes:
@@ -30,18 +30,18 @@ eks:
     diskSize: 20
     capacityType: ON_DEMAND
   adminAccess:
-    roleArnPrefix: "arn:aws:iam::637423635181:role/AWSReservedSSO_AWSAdministratorAccess"
+    roleArnPrefix: "yourSSORole"
   addOns:
     - name: coredns
-      version: v1.9.3-eksbuild.3
+      version: v1.11.3-eksbuild.1
     - name: vpc-cni
-      version: v1.12.6-eksbuild.1
+      version: v1.18.3-eksbuild.3
     - name: kube-proxy
-      version: v1.26.2-eksbuild.1
+      version: v1.30.3-eksbuild.5
     - name: eks-pod-identity-agent
-      version: v1.0.0-eksbuild.1
-    - name: kubecost_kubecost
-      version: v1.96.0-eksbuild.1
+      version: v1.3.2-eksbuild.2
+    # - name: kubecost_kubecost
+    #   version: v1.96.0-eksbuild.1
   awsLoadBalancerController:
     namespace: kube-system
     serviceAccountName: aws-load-balancer-controller
@@ -50,25 +50,28 @@ eks:
     namespace: kube-system
     serviceAccountName: ebs-csi-controller-sa
     version: 2.20.0
+  metricsServer:
+    version: "3.12.1"
+    namespace: kube-system
 
 rds:
   auroraEngineVersion: "8.0.mysql_aurora.3.05.2"
   instanceName: drupalRDS
   writerInstanceClass: T3
   writerInstanceSize: MEDIUM
-  writerAllowMajorVersionUpgrade: true
+  writerAllowMajorVersionUpgrade: false 
   writerAutoMinorVersionUpgrade: true
   readersInstanceClass: T3
   readersInstanceSize: MEDIUM
-  readersAllowMajorVersionUpgrade: true
+  readersAllowMajorVersionUpgrade: false
   readersAutoMinorVersionUpgrade: true
   readersInstanceCount: 0
-  databasePrefix: develop
+  databasePrefix: drupal
   allocatedStorage: 20
   maxAllocatedStorage: 100
   removalPolicy: DESTROY
   deletionProtection: false
   backupRetentionDays: 7
   backupPreferredWindow: "03:00-04:00"
-  databaseName: drupal
+  databaseName: instride 
   storageEncrypted: true

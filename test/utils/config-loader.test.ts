@@ -1,4 +1,4 @@
-import { ConfigProvider } from '../../lib/utils/config-loader';
+import { ConfigProvider } from '../../lib/utils/yaml-reader';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 
