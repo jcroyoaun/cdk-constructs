@@ -1,7 +1,7 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { VpcConstruct } from '../../lib/constructs/vpc-construct';
-import { ConfigProvider } from '../../lib/utils/config-loader';
+import { ConfigProvider } from '../../lib/utils/yaml-reader';
 
 jest.mock('../../lib/utils/config-loader');
 
