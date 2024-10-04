@@ -1,4 +1,4 @@
-name: Hello World PR Workflow
+name: Pull Request Flow
 
 on:
   pull_request:
@@ -15,17 +15,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    
-    - name: Say Hello
-      run: echo "Hello, World! A new PR has been opened."
-      
+          
     - name: PR Info
       run: |
         echo "PR Title: ${{ github.event.pull_request.title }}"
         echo "PR Author: ${{ github.event.pull_request.user.login }}"
       
-    - name: Current Date
-      run: date
+    - name: Install dependencies
+      run: npm ci
       
-    - name: Directory Contents
-      run: ls -l
+    - name: Run tests
+      run: npm run test
