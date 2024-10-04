@@ -30,12 +30,18 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
       id: codecov
 
+    - name: Extract Codecov URL
+      id: extract_url
+      run: |
+        CODECOV_URL=$(grep -o 'https://app\.codecov\.io/github/[^[:space:]]*' <<< "${{ steps.codecov.outputs.output }}" | head -n1)
+        echo "codecov_url=$CODECOV_URL" >> $GITHUB_OUTPUT
+
     - name: Add coverage to job summary
-      if: steps.codecov.outputs.codecov_url
       run: |
         echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
-        echo "Coverage report: ${{ steps.codecov.outputs.codecov_url }}" >> $GITHUB_STEP_SUMMARY
-        echo "Coverage percentage: ${{ steps.codecov.outputs.coverage }}%" >> $GITHUB_STEP_SUMMARY
+        echo "Codecov upload completed." >> $GITHUB_STEP_SUMMARY
+        echo "Coverage report: ${{ steps.extract_url.outputs.codecov_url }}" >> $GITHUB_STEP_SUMMARY
+        echo "For detailed results, check the Codecov dashboard." >> $GITHUB_STEP_SUMMARY
 
     - name: Upload test results
       uses: actions/upload-artifact@v3
