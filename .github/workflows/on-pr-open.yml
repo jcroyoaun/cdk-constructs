@@ -5,9 +5,14 @@ on:
     types: [opened]
 
 jobs:
-  say-hello:
+  run-tests:
     runs-on: ubuntu-latest
-    
+    container:
+      image: ghcr.io/jcroyoaun/cdk-cicd:node-20.17.0
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
     - uses: actions/checkout@v3
     
