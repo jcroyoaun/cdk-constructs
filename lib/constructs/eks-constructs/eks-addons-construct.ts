@@ -4,6 +4,7 @@ import { Construct } from 'constructs';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
+import { logger } from '../../utils/logger';
 
 export class EksAddonsConstruct extends Construct {
   constructor(scope: Construct, id: string, props: any, cluster: eks.Cluster, vpcRef: ec2.IVpc) {
@@ -12,21 +13,28 @@ export class EksAddonsConstruct extends Construct {
     const eksConfig = props.config;
     
     try {
+      logger.info('Starting EKS add-ons installation', 'EksAddonsConstruct');
       this.installClusterAddOns(cluster, eksConfig, props.env);
       
       if (eksConfig.awsLoadBalancerController) {
+        logger.info('Installing AWS Load Balancer Controller', 'EksAddonsConstruct');
         new AwsLbController(this, 'AwsLbController', eksConfig.awsLoadBalancerController, cluster, vpcRef);
       }
       
       if (eksConfig.ebsCsiDriver) {
+        logger.info('Installing EBS CSI Driver', 'EksAddonsConstruct');
         new EbsCsiDriver(this, 'EbsCsiDriver', eksConfig.ebsCsiDriver, cluster, cluster.openIdConnectProvider);
       }
       
       if (eksConfig.metricsServer) {
+        logger.info('Installing Metrics Server', 'EksAddonsConstruct');
         this.installMetricsServer(cluster, eksConfig.metricsServer);
       }
+      
+      logger.success('EKS add-ons installation completed successfully', 'EksAddonsConstruct');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Error setting up EKS addons: ${errorMessage}`, 'EksAddonsConstruct');
       throw new Error(`Error setting up EKS addons: ${errorMessage}\nPlease check your EKS addons configuration.`);
     }
   }
@@ -41,10 +49,10 @@ export class EksAddonsConstruct extends Construct {
     if (eksConfig.addOns && Array.isArray(eksConfig.addOns)) {
       eksConfig.addOns.forEach((addon: any) => {
         if (!addon.name || !addon.version) {
-          console.warn(`Skipping invalid add-on configuration: ${JSON.stringify(addon)}`);
+          logger.warn(`Skipping invalid add-on configuration: ${JSON.stringify(addon)}`, 'EksAddonsConstruct');
           return;
         }
-        console.log(`Creating add-on: ${addon.name} with version ${addon.version}`);
+        logger.info(`Creating add-on: ${addon.name} with version ${addon.version}`, 'EksAddonsConstruct');
         new eks.CfnAddon(this, addon.name, {
           addonName: addon.name,
           clusterName: cluster.clusterName,
@@ -53,15 +61,14 @@ export class EksAddonsConstruct extends Construct {
         });
       });
     } else {
-      console.warn('No add-ons configuration found or invalid configuration');
+      logger.warn('No add-ons configuration found or invalid configuration', 'EksAddonsConstruct');
     }
   }
 
   private installMetricsServer(cluster: eks.Cluster, config: any) {
     try {
-      console.log('Installing Metrics Server with config:', JSON.stringify(config, null, 2));
+      logger.info(`Installing Metrics Server with config: ${JSON.stringify(config, null, 2)}`, 'EksAddonsConstruct');
       const valuesYaml = yaml.load(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'values', 'metrics-server.yaml'), 'utf8')) as Record<string, any>;
-      console.log(JSON.stringify(valuesYaml));
       new eks.HelmChart(this, 'MetricsServerChart', {
         cluster,
         chart: 'metrics-server',
@@ -71,8 +78,10 @@ export class EksAddonsConstruct extends Construct {
         version: config.version,
         values: valuesYaml,
       });
+      logger.success('Metrics Server installed successfully', 'EksAddonsConstruct');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Error deploying Metrics Server: ${errorMessage}`, 'EksAddonsConstruct');
       throw new Error(`Error deploying Metrics Server: ${errorMessage}\nPlease check your Metrics Server configuration.`);
     }
   }
@@ -83,6 +92,8 @@ class AwsLbController extends Construct {
     super(scope, id);
 
     try {
+      logger.info('Starting AWS Load Balancer Controller installation', 'AwsLbController');
+      
       const awsLbcRole = new iam.Role(this, 'AwsLbcRole', {
         assumedBy: new iam.ServicePrincipal('pods.eks.amazonaws.com'),
         roleName: `${cluster.clusterName}-aws-lbc`,
@@ -96,6 +107,7 @@ class AwsLbController extends Construct {
         })
       );
 
+      logger.info('Loading AWS Load Balancer Controller policy', 'AwsLbController');
       const policyJson = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'iam', 'AWSLoadBalancerController.json'), 'utf8'));
       const policyStatements = policyJson.Statement.map((statement: any) => iam.PolicyStatement.fromJson(statement));
 
@@ -104,6 +116,7 @@ class AwsLbController extends Construct {
       });
       awsLbcRole.attachInlinePolicy(awsLbcPolicy);
 
+      logger.info('Creating Pod Identity Association', 'AwsLbController');
       new eks.CfnPodIdentityAssociation(this, 'AwsLbcPodIdentity', {
         clusterName: cluster.clusterName,
         namespace: config.namespace,
@@ -111,6 +124,7 @@ class AwsLbController extends Construct {
         roleArn: awsLbcRole.roleArn,
       });
 
+      logger.info('Deploying AWS Load Balancer Controller Helm Chart', 'AwsLbController');
       const awsLbcChart = new eks.HelmChart(this, 'AwsLbcChart', {
         cluster: cluster,
         repository: 'https://aws.github.io/eks-charts',
@@ -129,8 +143,10 @@ class AwsLbController extends Construct {
 
       awsLbcChart.node.addDependency(awsLbcRole);
 
+      logger.success('AWS Load Balancer Controller installed successfully', 'AwsLbController');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Error deploying AWS Load Balancer Controller: ${errorMessage}`, 'AwsLbController');
       throw new Error(`Error deploying AWS Load Balancer Controller: ${errorMessage}\nPlease check your AWS Load Balancer Controller configuration.`);
     }
   }
@@ -141,16 +157,20 @@ class EbsCsiDriver extends Construct {
     super(scope, id);
 
     try {
+      logger.info('Starting EBS CSI Driver installation', 'EbsCsiDriver');
       const ebsCsiRole = this.createEbsCsiRole(cluster, oidcProvider, config);
       this.attachEbsCsiPolicy(ebsCsiRole);
       this.deployEbsCsiDriver(cluster, config, ebsCsiRole);
+      logger.success('EBS CSI Driver installed successfully', 'EbsCsiDriver');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Error deploying EBS CSI Driver: ${errorMessage}`, 'EbsCsiDriver');
       throw new Error(`Error deploying EBS CSI Driver: ${errorMessage}\nPlease check your EBS CSI Driver configuration.`);
     }
   }
 
   private createEbsCsiRole(cluster: eks.Cluster, oidcProvider: iam.IOpenIdConnectProvider, config: any): iam.Role {
+    logger.info('Creating EBS CSI Driver IAM Role', 'EbsCsiDriver');
     const oidcProviderArn = oidcProvider.openIdConnectProviderArn;
     const oidcProviderIssuer = oidcProvider.openIdConnectProviderIssuer;
 
@@ -172,10 +192,12 @@ class EbsCsiDriver extends Construct {
   }
 
   private attachEbsCsiPolicy(role: iam.Role) {
+    logger.info('Attaching EBS CSI Driver IAM Policy', 'EbsCsiDriver');
     role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonEBSCSIDriverPolicy'));
   }
 
   private deployEbsCsiDriver(cluster: eks.Cluster, config: any, role: iam.Role) {
+    logger.info('Deploying EBS CSI Driver Helm Chart', 'EbsCsiDriver');
     const ebsCsiChart = new eks.HelmChart(this, 'EbsCsiChart', {
       cluster: cluster,
       repository: 'https://kubernetes-sigs.github.io/aws-ebs-csi-driver',

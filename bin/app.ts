@@ -3,6 +3,7 @@ import * as cdk from 'aws-cdk-lib';
 import { VpcConstruct } from '../lib/constructs/vpc-construct';
 import { EksConstruct } from '../lib/constructs/eks-construct'
 import { RdsConstruct } from '../lib/constructs/rds-construct'
+import { NlbConstruct } from '../lib/constructs/nlb-construct'
 import { YamlReader } from '../lib/utils/yaml-reader';
 import { Construct } from 'constructs';
 
@@ -38,6 +39,7 @@ const constructMap: { [key: string]: ConstructClass } = {
   vpc: VpcConstruct,
   eks: EksConstruct,
   rds: RdsConstruct,
+  nlb: NlbConstruct,
 };
 
 const createdConstructs: { [key: string]: Construct } = {};

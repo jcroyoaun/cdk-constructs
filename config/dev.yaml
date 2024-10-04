@@ -75,3 +75,16 @@ rds:
   backupPreferredWindow: "03:00-04:00"
   databaseName: instride 
   storageEncrypted: true
+
+nlb:
+  internal:
+    name: instride-nlb-int-dev
+    scheme: internal
+    subnetType: PRIVATE_WITH_EGRESS
+  external:
+    name: instride-nlb-ext-dev
+    scheme: internet-facing
+    subnetType: PUBLIC
+  common:
+    type: network
+    ipAddressType: ipv4
