@@ -41,7 +41,7 @@ jobs:
       run: npm ci
 
     - name: CDK Bootstrap
-      run: cdk bootstrap aws://${{ env.AWS_ACCOUNT }}/${{ env.AWS_REGION }}
+      run: cdk bootstrap aws://${{ env.AWS_ACCOUNT }}/${{ env.AWS_REGION }} -c env=${{ github.event.inputs.targetEnv }}
     
     - name: CDK Synth
       run: cdk synth -c env=${{ github.event.inputs.targetEnv }}
