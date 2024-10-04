@@ -33,7 +33,7 @@ jobs:
     - name: Extract Codecov URL
       id: extract_url
       run: |
-        CODECOV_URL=$(grep -o 'https://app\.codecov\.io/github/[^[:space:]]*' <<< "${{ steps.codecov.outputs.output }}" | head -n1)
+        CODECOV_URL=$(echo "${{ steps.codecov.outputs.output }}" | grep "https://app.codecov.io")
         echo "codecov_url=$CODECOV_URL" >> $GITHUB_OUTPUT
 
     - name: Add coverage to job summary
