@@ -25,4 +25,17 @@ jobs:
       run: npm ci
       
     - name: Run tests
-      run: npm run test
+      run: npm run test -- --coverage --coverageReporters=lcov --json --outputFile=test-results.json
+
+    - name: Upload results to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: test-results.json
+
+
