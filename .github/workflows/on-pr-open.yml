@@ -1,0 +1,26 @@
+name: Hello World PR Workflow
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Say Hello
+      run: echo "Hello, World! A new PR has been opened."
+      
+    - name: PR Info
+      run: |
+        echo "PR Title: ${{ github.event.pull_request.title }}"
+        echo "PR Author: ${{ github.event.pull_request.user.login }}"
+      
+    - name: Current Date
+      run: date
+      
+    - name: Directory Contents
+      run: ls -l
