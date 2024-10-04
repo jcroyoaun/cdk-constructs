@@ -47,4 +47,4 @@ jobs:
       run: cdk synth -c env=${{ github.event.inputs.targetEnv }}
       
     - name: CDK Deploy
-      run: cdk deploy -c env=${{ github.event.inputs.targetEnv }} --require-approval never
+      run: cdk deploy --all -c env=${{ github.event.inputs.targetEnv }} --require-approval never
