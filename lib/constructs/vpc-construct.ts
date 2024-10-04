@@ -2,7 +2,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 import * as cdk from 'aws-cdk-lib';
 import { SubnetNamingUtil } from '../utils/subnet-naming-util';
-import { InstrideTagger } from '../utils/instride-tagging';
+import { InstrideTagger } from '../utils/tagging';
 
 export class VpcConstruct extends Construct {
   public readonly ec2Vpc: ec2.Vpc;

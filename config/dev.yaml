@@ -56,7 +56,7 @@ eks:
 
 rds:
   auroraEngineVersion: "8.0.mysql_aurora.3.05.2"
-  instanceName: drupalRDS
+  instanceName: myRDS
   writerInstanceClass: T3
   writerInstanceSize: MEDIUM
   writerAllowMajorVersionUpgrade: false 
@@ -66,12 +66,25 @@ rds:
   readersAllowMajorVersionUpgrade: false
   readersAutoMinorVersionUpgrade: true
   readersInstanceCount: 0
-  databasePrefix: drupal
+  databasePrefix: db
   allocatedStorage: 20
   maxAllocatedStorage: 100
   removalPolicy: DESTROY
   deletionProtection: false
   backupRetentionDays: 7
   backupPreferredWindow: "03:00-04:00"
-  databaseName: instride 
+  databaseName: mydb 
   storageEncrypted: true
+
+nlb:
+  internal:
+    name: jcroyoaun-nlb-int-dev
+    scheme: internal
+    subnetType: PRIVATE_WITH_EGRESS
+  external:
+    name: jcroyoaun-nlb-ext-dev
+    scheme: internet-facing
+    subnetType: PUBLIC
+  common:
+    type: network
+    ipAddressType: ipv4

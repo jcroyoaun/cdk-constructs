@@ -1,7 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { aws_rds as rds, aws_ec2 as ec2 } from 'aws-cdk-lib';
-import { InstrideTagger } from '../utils/instride-tagging';
+import { InstrideTagger } from '../utils/tagging';
+import { logger } from '../utils/logger';
 
 export class RdsConstruct extends Construct {
   public readonly cluster: rds.DatabaseCluster;
@@ -16,9 +17,8 @@ export class RdsConstruct extends Construct {
     const rdsConfig = props.config;
     const vpcRef = props.constructRefs.vpc.ec2Vpc;
     const eksRef = props.constructRefs.eks.cluster;
-    console.log(JSON.stringify(rdsConfig));
-    this.dbPrefix = rdsConfig.databasePrefix || 'instride';
-    this.dbName = rdsConfig.databaseName || 'drupal';
+    this.dbPrefix = rdsConfig.databasePrefix;
+    this.dbName = rdsConfig.databaseName;
     this.envName = props.env;
 
     try {
@@ -26,8 +26,11 @@ export class RdsConstruct extends Construct {
       this.cluster = this.createDatabaseCluster(vpcRef, rdsConfig);
       this.configureSecurityGroup(eksRef.clusterSecurityGroup);
       this.addTags(props);
+      
+      logger.info(`RDS cluster created successfully. Engine: Aurora MySQL ${rdsConfig.auroraEngineVersion}`, 'RdsConstruct');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Error creating RDS cluster: ${errorMessage}. Please check your RDS configuration in the YAML file.`, 'RdsConstruct');
       throw new Error(`Error creating RDS cluster: ${errorMessage}\nPlease check your RDS configuration in the YAML file.`);
     }
   }
@@ -47,7 +50,9 @@ export class RdsConstruct extends Construct {
     const readersInstanceSize = ec2.InstanceSize[rdsConfig.readersInstanceSize as keyof typeof ec2.InstanceSize];
     
     const databaseName = `${this.dbPrefix}${this.dbName}${this.envName}`;
-    const sanitizedDatabaseName = /^[a-zA-Z]/.test(databaseName) ? databaseName : `instride${databaseName}`;
+    const sanitizedDatabaseName = /^[a-zA-Z]/.test(databaseName) ? databaseName : `${databaseName}`;
+
+    logger.info(`Creating Aurora MySQL cluster with engine version: ${rdsConfig.auroraEngineVersion}`, 'RdsConstruct');
 
     return new rds.DatabaseCluster(this, `${this.dbPrefix}-${this.dbName}-${this.envName}`, {
       engine: rds.DatabaseClusterEngine.auroraMysql({
