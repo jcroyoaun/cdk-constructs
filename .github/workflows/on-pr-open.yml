@@ -33,7 +33,9 @@ jobs:
     - name: Add coverage to job summary
       run: |
         echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
         tail -n +4 coverage.txt >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
 
     - name: Upload test results
       uses: actions/upload-artifact@v3
