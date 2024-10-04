@@ -1,7 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { aws_elasticloadbalancingv2 as elbv2, aws_ec2 as ec2 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { InstrideTagger } from '../utils/instride-tagging';
+import { InstrideTagger } from '../utils/tagging';
 import { logger } from '../utils/logger';
 
 export class NlbConstruct extends Construct {

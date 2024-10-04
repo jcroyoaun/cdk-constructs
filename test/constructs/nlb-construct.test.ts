@@ -32,12 +32,12 @@ describe('NlbConstruct', () => {
       },
       nlb: {
         internal: {
-          name: 'instride-nlb-int-dev',
+          name: 'jcroyoaun-nlb-int-dev',
           scheme: 'internal',
           subnetType: 'PRIVATE_WITH_EGRESS',
         },
         external: {
-          name: 'instride-nlb-ext-dev',
+          name: 'jcroyoaun-nlb-ext-dev',
           scheme: 'internet-facing',
           subnetType: 'PUBLIC',
         },
@@ -73,7 +73,7 @@ describe('NlbConstruct', () => {
 
   test('creates an internal NLB with the correct configuration', () => {
     template.hasResourceProperties('AWS::ElasticLoadBalancingV2::LoadBalancer', {
-      Name: 'instride-nlb-int-dev',
+      Name: 'jcroyoaun-nlb-int-dev',
       Scheme: 'internal',
       Type: 'network',
       IpAddressType: 'ipv4',
@@ -89,7 +89,7 @@ describe('NlbConstruct', () => {
 
   test('creates an external NLB with the correct configuration', () => {
     template.hasResourceProperties('AWS::ElasticLoadBalancingV2::LoadBalancer', {
-      Name: 'instride-nlb-ext-dev',
+      Name: 'jcroyoaun-nlb-ext-dev',
       Scheme: 'internet-facing',
       Type: 'network',
       IpAddressType: 'ipv4',
@@ -132,7 +132,7 @@ describe('NlbConstruct', () => {
   test('external NLB is in public subnets', () => {
     const externalNlbs = template.findResources('AWS::ElasticLoadBalancingV2::LoadBalancer', {
       Properties: {
-        Name: 'instride-nlb-ext-dev',
+        Name: 'jcroyoaun-nlb-ext-dev',
         Scheme: 'internet-facing',
       }
     });
