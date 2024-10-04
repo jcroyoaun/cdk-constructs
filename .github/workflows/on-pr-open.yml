@@ -22,7 +22,7 @@ jobs:
       run: npm ci
       
     - name: Run tests
-      run: npm run test -- --coverage --coverageReporters=lcov --json --outputFile=test-results.json
+      run: npm run test -- --coverage --coverageReporters=lcov --json --outputFile=test-results.json --coverageReporters="text-summary" | tee coverage.txt
 
     - name: Upload results to Codecov
       uses: codecov/codecov-action@v4
@@ -30,17 +30,10 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
       id: codecov
 
-    - name: Capture Codecov output
-      run: |
-        CODECOV_OUTPUT=$(cat $GITHUB_WORKSPACE/_logs/*.log | grep -oP 'https://app.codecov.io[^ ]+')
-        echo "codecov_url=$CODECOV_OUTPUT" >> $GITHUB_OUTPUT
-
     - name: Add coverage to job summary
       run: |
         echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
-        echo "Codecov upload completed." >> $GITHUB_STEP_SUMMARY
-        echo "Coverage report: ${{ steps.extract_url.outputs.codecov_url }}" >> $GITHUB_STEP_SUMMARY
-        echo "For detailed results, check the Codecov dashboard." >> $GITHUB_STEP_SUMMARY
+        tail -n +4 coverage.txt >> $GITHUB_STEP_SUMMARY
 
     - name: Upload test results
       uses: actions/upload-artifact@v3
