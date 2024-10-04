@@ -1,0 +1,57 @@
+name: CDK Pipeline
+on:
+  workflow_dispatch:
+    inputs:
+      targetEnv:
+        description: 'Target Environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+
+jobs:
+  cdk-pipeline:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/jcroyoaun/cdk-cicd:node-20.17.0
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.JCROYOAUN_PAT }}
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Read config and set env variables
+      run: |
+        echo "Reading config from config/${{ github.event.inputs.targetEnv }}.yaml"
+        AWS_ACCOUNT=$(grep aws_account config/${{ github.event.inputs.targetEnv }}.yaml | awk '{print $2}' | tr -d '"')
+        AWS_REGION=$(grep aws_region config/${{ github.event.inputs.targetEnv }}.yaml | awk '{print $2}')
+        echo "AWS_ACCOUNT=$AWS_ACCOUNT" >> $GITHUB_ENV
+        echo "AWS_REGION=$AWS_REGION" >> $GITHUB_ENV
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: CDK Bootstrap
+      run: cdk bootstrap aws://${{ env.AWS_ACCOUNT }}/${{ env.AWS_REGION }}
+    
+    - name: CDK Synth
+      run: cdk synth -c env=${{ github.event.inputs.targetEnv }}
+    
+    - name: Wait for Approval
+      uses: trstringer/manual-approval@v1
+      with:
+        secret: ${{ github.token }}
+        approvers: ${{ github.actor }}
+        minimum-approvals: 1
+        issue-title: "Approve CDK Deployment"
+        issue-body: "Please approve the CDK deployment for environment: ${{ github.event.inputs.targetEnv }}"
+        exclude-workflow-initiator-as-approver: false
+    
+    - name: CDK Deploy
+      run: cdk deploy -c env=${{ github.event.inputs.targetEnv }} --require-approval never
