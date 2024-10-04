@@ -1,9 +1,7 @@
 name: Pull Request Flow
-
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-
 jobs:
   run-tests:
     runs-on: ubuntu-latest
@@ -12,7 +10,6 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.JCROYOAUN_PAT }}
-
     steps:
     - uses: actions/checkout@v3
           
@@ -25,4 +22,23 @@ jobs:
       run: npm ci
       
     - name: Run tests
-      run: npm run test
+      run: npm run test -- --coverage --coverageReporters=lcov --json --outputFile=test-results.json --coverageReporters="text-summary" | tee coverage.txt
+
+    - name: Upload results to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+      id: codecov
+
+    - name: Add coverage to job summary
+      run: |
+        echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        tail -n +4 coverage.txt >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: test-results.json
