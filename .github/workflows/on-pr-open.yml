@@ -1,9 +1,7 @@
 name: Pull Request Flow
-
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-
 jobs:
   run-tests:
     runs-on: ubuntu-latest
@@ -12,7 +10,6 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.JCROYOAUN_PAT }}
-
     steps:
     - uses: actions/checkout@v3
           
@@ -31,11 +28,17 @@ jobs:
       uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+      id: codecov
+
+    - name: Add coverage to job summary
+      if: steps.codecov.outputs.codecov_url
+      run: |
+        echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
+        echo "Coverage report: ${{ steps.codecov.outputs.codecov_url }}" >> $GITHUB_STEP_SUMMARY
+        echo "Coverage percentage: ${{ steps.codecov.outputs.coverage }}%" >> $GITHUB_STEP_SUMMARY
 
     - name: Upload test results
       uses: actions/upload-artifact@v3
       with:
         name: test-results
         path: test-results.json
-
-
