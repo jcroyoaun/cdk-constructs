@@ -45,16 +45,6 @@ jobs:
     
     - name: CDK Synth
       run: cdk synth -c env=${{ github.event.inputs.targetEnv }}
-    
-    - name: Wait for Approval
-      uses: trstringer/manual-approval@v1
-      with:
-        secret: ${{ github.token }}
-        approvers: ${{ github.actor }}
-        minimum-approvals: 1
-        issue-title: "Approve CDK Deployment"
-        issue-body: "Please approve the CDK deployment for environment: ${{ github.event.inputs.targetEnv }}"
-        exclude-workflow-initiator-as-approver: false
-    
+      
     - name: CDK Deploy
       run: cdk deploy -c env=${{ github.event.inputs.targetEnv }} --require-approval never
