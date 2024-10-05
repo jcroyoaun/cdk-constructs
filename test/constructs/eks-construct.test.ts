@@ -235,6 +235,52 @@ describe('EksConstruct', () => {
     });
   });
 
+  test('creates EventBridge rules for Karpenter with correct targets', () => {
+    ['SpotInterruptionRule', 'RebalanceRule', 'InstanceStateChangeRule'].forEach(ruleName => {
+      template.hasResourceProperties('AWS::Events::Rule', {
+        EventPattern: Match.objectLike({
+          source: ['aws.ec2'],
+          'detail-type': Match.anyValue()
+        }),
+        Targets: Match.arrayWith([
+          Match.objectLike({
+            Arn: {
+              'Fn::GetAtt': Match.arrayWith([Match.stringLikeRegexp('KarpenterInterruptionQueue')])
+            },
+            Id: 'Target0'
+          })
+        ])
+      });
+    });
+  });
+
+  test('creates Karpenter interruption queue policy', () => {
+    template.hasResourceProperties('AWS::SQS::QueuePolicy', {
+      PolicyDocument: {
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Action: 'sqs:SendMessage',
+            Effect: 'Allow',
+            Principal: {
+              Service: ['events.amazonaws.com', 'sqs.amazonaws.com']
+            },
+            Resource: Match.anyValue()
+          }),
+          Match.objectLike({
+            Action: 'sqs:*',
+            Effect: 'Deny',
+            Principal: { AWS: '*' },
+            Resource: Match.anyValue(),
+            Condition: {
+              Bool: { 'aws:SecureTransport': false }
+            }
+          })
+        ])
+      }
+    });
+  });
+
+
   test('tags subnets correctly', () => {
     ['Public', 'Private'].forEach(subnetType => {
       template.hasResourceProperties('AWS::EC2::Subnet', {
