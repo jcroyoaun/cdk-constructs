@@ -53,11 +53,14 @@ Object.entries(constructMap).forEach(([key, ConstructClass]) => {
   }
 
   const resourceAcronym = `${env}-${key.charAt(0).toUpperCase() + key.slice(1)}`
+  console.log(`Creating stack: ${resourceAcronym}Stack`);
 
   //Create Stack
   const stack = new cdk.Stack(app, `${resourceAcronym}Stack`, {
     env: awsEnv
   });
+
+  console.log(`Creating construct: ${key}`);
 
   
   //Create Construct

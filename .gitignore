@@ -10,3 +10,5 @@ dist/
 # CDK
 cdk.out/
 cdk.context.json
+coverage*
+test-results.json

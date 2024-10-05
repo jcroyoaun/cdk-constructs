@@ -53,7 +53,9 @@ eks:
   metricsServer:
     version: "3.12.1"
     namespace: kube-system
-
+  karpenter:
+    version: "1.0.6"
+  
 rds:
   auroraEngineVersion: "8.0.mysql_aurora.3.05.2"
   instanceName: myRDS
