@@ -1,9 +1,9 @@
 import * as cdk from 'aws-cdk-lib';
 import { aws_eks as eks, aws_ec2 as ec2, aws_iam as iam } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-
 import { EksBaseConstruct } from './eks-constructs/eks-base-construct';
 import { EksAddonsConstruct } from './eks-constructs/eks-addons-construct';
+import { KarpenterConstruct } from './eks-constructs/eks-karpenter-construct'
 
 export class EksConstruct extends Construct {
   public readonly cluster: eks.Cluster;
@@ -25,6 +25,7 @@ export class EksConstruct extends Construct {
 
 
    new EksAddonsConstruct(this, 'EksAddons', props, baseConstruct.cluster, vpcRef);
+   new KarpenterConstruct(this, 'KarpenterConstruct', props, baseConstruct.cluster, vpcRef);
   }
   
   private tagSubnets(vpc: ec2.IVpc, clusterName: string) {
