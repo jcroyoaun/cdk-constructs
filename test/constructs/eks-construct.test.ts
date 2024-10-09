@@ -97,6 +97,10 @@ describe('EksConstruct', () => {
       constructRefs: {
         vpc: { ec2Vpc: vpcConstruct },
       },
+      awsEnv: {
+        account: config.aws_account,
+        region: config.aws_region
+      }
     };
 
     new EksConstruct(stack, 'TestEks', props);

@@ -10,13 +10,10 @@ export class KarpenterConstruct extends Construct {
   constructor(scope: Construct, id: string, props: any, cluster: eks.Cluster, vpcRef: ec2.IVpc) {
     super(scope, id);
 
-    const region = process.env.AWS_REGION;
-    const accountId = process.env.AWS_ACCOUNT;
+    const region = props.awsEnv.region;
+    const accountId = props.awsEnv.account;
     const eksConfig = props.config;
     
-    if (!region || !accountId) {
-      throw new Error('AWS_REGION and AWS_ACCOUNT must be set in the environment');
-    }
 
     const karpenterInterruptionQueue = new sqs.Queue(this, 'KarpenterInterruptionQueue', {
       queueName: cluster.clusterName,

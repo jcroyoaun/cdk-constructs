@@ -67,8 +67,10 @@ Object.entries(constructMap).forEach(([key, ConstructClass]) => {
   const construct = new ConstructClass(stack, key, {
     config: constructConfig,
     env: env,
-    constructRefs: createdConstructs
+    constructRefs: createdConstructs,
+    awsEnv: awsEnv
   });
+
 
   //Saving construct for cross-stack referencing
   createdConstructs[key] = construct;
