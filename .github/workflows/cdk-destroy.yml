@@ -43,5 +43,5 @@ jobs:
     - name: CDK Synth
       run: cdk synth -c env=${{ github.event.inputs.targetEnv }}
       
-    - name: CDK Deploy
-      run: cdk deploy --all -c env=${{ github.event.inputs.targetEnv }} --require-approval never
+    - name: CDK Destroy
+      run: cdk destroy --all -c env=${{ github.event.inputs.targetEnv }} --require-approval never
