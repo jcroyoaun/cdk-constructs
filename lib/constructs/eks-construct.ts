@@ -81,6 +81,12 @@ export class EksConstruct extends Construct {
     const clusterSecurityGroup = this.cluster.clusterSecurityGroup;
     cdk.Tags.of(clusterSecurityGroup).add(`kubernetes.io/cluster/${clusterName}`, 'shared');
     cdk.Tags.of(clusterSecurityGroup).add(`karpenter.sh/discovery`, clusterName);
+
+    // Add tags to all security groups associated with the cluster
+    this.cluster.connections.securityGroups.forEach(sg => {
+      cdk.Tags.of(sg).add(`kubernetes.io/cluster/${clusterName}`, 'shared');
+      cdk.Tags.of(sg).add(`karpenter.sh/discovery`, clusterName);
+    });
   }
 
 }
