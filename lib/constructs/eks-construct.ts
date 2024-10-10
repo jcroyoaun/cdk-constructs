@@ -51,6 +51,7 @@ export class EksConstruct extends Construct {
 
     // Add the synthesized CDK8s chart to the EKS cluster
     baseConstruct.cluster.addCdk8sChart('KarpenterResourcesChart', karpenterResourcesChart);
+    karpenterResourcesChart.addDependency(karpenterConstruct);
   }
 
   private tagSubnets(vpc: ec2.IVpc, clusterName: string) {
