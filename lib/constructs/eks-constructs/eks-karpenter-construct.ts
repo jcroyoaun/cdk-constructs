@@ -40,7 +40,7 @@ export class KarpenterConstruct extends Construct {
     new eks.AccessEntry(this, 'KarpenterNodeRoleAccessEntry', {
       cluster: cluster,
       principal: karpenterNodeRole.roleArn,
-      accessEntryType: eks.AccessEntryType.EC2_LINUX,
+      accessEntryType: eks.AccessEntryType.STANDARD,
       accessPolicies: [
         eks.AccessPolicy.fromAccessPolicyName('system:node', {
           accessScopeType: eks.AccessScopeType.CLUSTER,
