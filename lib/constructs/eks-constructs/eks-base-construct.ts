@@ -69,6 +69,10 @@ export class EksBaseConstruct extends Construct {
         ? eks.CapacityType.SPOT 
         : eks.CapacityType.ON_DEMAND,
       labels: { role: envName },
+      tags: {
+        [`kubernetes.io/cluster/${eksConfig.clusterName}`]: 'shared',
+        'karpenter.sh/discovery': eksConfig.clusterName
+      },
     });
   }
 
