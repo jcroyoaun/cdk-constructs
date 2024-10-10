@@ -99,7 +99,7 @@ class EC2NodeClass extends Construct {
         subnetSelectorTerms: [{ tags: { 'karpenter.sh/discovery': props.clusterName } }],
         securityGroupSelectorTerms: [{ tags: { 'karpenter.sh/discovery': props.clusterName } }],
         amiSelectorTerms: [
-          { id: props.amdAmiId, name: `amazon-eks-node-${props.k8sVersion}` },
+          { id: props.amdAmiId },
         ],
       },
     });
