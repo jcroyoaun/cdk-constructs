@@ -23,6 +23,7 @@ export class EksConstruct extends Construct {
 
     // Tag the subnets after the cluster is created
     this.tagSubnets(vpcRef, clusterName);
+    this.tagClusterSecurityGroup(clusterName);
 
     const addonsConstruct = new EksAddonsConstruct(this, 'EksAddons', props, baseConstruct.cluster, vpcRef);
 
@@ -49,8 +50,9 @@ export class EksConstruct extends Construct {
       clusterName: clusterName,
       nodeRoleName: `KarpenterNodeRole-${clusterName}`,
       amdAmiId: amdAmiId,
+      k8sVersion: k8sVersion,
     });
-    
+
     new NodePool(karpenterResourcesChart, 'NodePool');
 
     // Synthesize the CDK8s app before adding it to the cluster
@@ -74,10 +76,17 @@ export class EksConstruct extends Construct {
       cdk.Tags.of(subnet).add(`karpenter.sh/discovery`, clusterName);
     });
   }
+
+  private tagClusterSecurityGroup(clusterName: string): void {
+    const clusterSecurityGroup = this.cluster.clusterSecurityGroup;
+    cdk.Tags.of(clusterSecurityGroup).add(`kubernetes.io/cluster/${clusterName}`, 'shared');
+    cdk.Tags.of(clusterSecurityGroup).add(`karpenter.sh/discovery`, clusterName);
+  }
+
 }
 
 class EC2NodeClass extends Construct {
-  constructor(scope: Construct, id: string, props: { clusterName: string, nodeRoleName: string, amdAmiId: string }) {
+  constructor(scope: Construct, id: string, props: { clusterName: string, nodeRoleName: string, amdAmiId: string, k8sVersion: string }) {
     super(scope, id);
 
     new ApiObject(this, 'EC2NodeClass', {
@@ -90,7 +99,7 @@ class EC2NodeClass extends Construct {
         subnetSelectorTerms: [{ tags: { 'karpenter.sh/discovery': props.clusterName } }],
         securityGroupSelectorTerms: [{ tags: { 'karpenter.sh/discovery': props.clusterName } }],
         amiSelectorTerms: [
-          { id: props.amdAmiId },
+          { id: props.amdAmiId, name: `amazon-eks-node-${props.k8sVersion}` },
         ],
       },
     });
