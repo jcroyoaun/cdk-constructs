@@ -24,9 +24,7 @@ export class EksConstruct extends Construct {
     // Tag the subnets after the cluster is created
     this.tagSubnets(vpcRef, clusterName);
     this.tagClusterSecurityGroup(clusterName);
-    this.tagNodeGroupSecurityGroup(clusterName);
 
-    
     const addonsConstruct = new EksAddonsConstruct(this, 'EksAddons', props, baseConstruct.cluster, vpcRef);
 
     // Create Karpenter construct and add dependencies
@@ -90,24 +88,6 @@ export class EksConstruct extends Construct {
       cdk.Tags.of(sg).add(`karpenter.sh/discovery`, clusterName);
     });
   }
-
-  private tagNodeGroupSecurityGroup(clusterName: string): void {
-    const nodeSecurityGroup = this.cluster.clusterSecurityGroup.node.tryFindChild('NodeSecurityGroup') as ec2.SecurityGroup;
-    if (nodeSecurityGroup) {
-      this.tagSecurityGroup(nodeSecurityGroup, clusterName, 'node-group');
-    } else {
-      console.warn('Node group security group not found. Make sure it\'s created before tagging.');
-    }
-  }
-
-  private tagSecurityGroup(securityGroup: ec2.ISecurityGroup, clusterName: string, groupType: string): void {
-    cdk.Tags.of(securityGroup).add(`kubernetes.io/cluster/${clusterName}`, 'owned');
-    cdk.Tags.of(securityGroup).add(`karpenter.sh/discovery`, clusterName);
-    cdk.Tags.of(securityGroup).add('Name', `eks-${groupType}-sg-${clusterName}`);
-  }
-  
-  
-
 }
 
 class EC2NodeClass extends Construct {

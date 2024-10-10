@@ -14,7 +14,6 @@ export class KarpenterConstruct extends Construct {
     const accountId = props.awsEnv.account;
     const eksConfig = props.config;
     
-
     const karpenterInterruptionQueue = new sqs.Queue(this, 'KarpenterInterruptionQueue', {
       queueName: cluster.clusterName,
       retentionPeriod: cdk.Duration.seconds(300),
@@ -35,6 +34,21 @@ export class KarpenterConstruct extends Construct {
         iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('ElasticLoadBalancingFullAccess'),
       ],
+    });
+
+    karpenterNodeRole.assumeRolePolicy?.addStatements(
+      new iam.PolicyStatement({
+        actions: ['sts:AssumeRole', 'sts:TagSession'],
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.ServicePrincipal('ec2.amazonaws.com')],
+      })
+    );
+
+    new eks.CfnPodIdentityAssociation(this, 'KarpenterPodIdentityAssociation', {
+      clusterName: cluster.clusterName,
+      namespace: 'kube-system',
+      serviceAccount: 'karpenter',
+      roleArn: karpenterNodeRole.roleArn
     });
 
     const clusterNameJson = new CfnJson(this, 'ClusterName', {
