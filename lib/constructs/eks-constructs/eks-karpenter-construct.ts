@@ -44,7 +44,7 @@ export class KarpenterConstruct extends Construct {
       })
     );
 
-    new eks.CfnPodIdentityAssociation(this, 'KarpenterPodIdentityAssociation', {
+    new eks.CfnPodIdentityAssociation(this, 'KarpenterNodeRolePodIdentityAssociation', {
       clusterName: cluster.clusterName,
       namespace: 'kube-system',
       serviceAccount: 'karpenter',
