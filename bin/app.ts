@@ -38,7 +38,7 @@ type ConstructClass = new (scope: cdk.Stack, id: string, props: any) => Construc
 const constructMap: { [key: string]: ConstructClass } = {
   vpc: VpcConstruct,
   eks: EksConstruct,
-  rds: RdsConstruct,
+  // rds: RdsConstruct,
   nlb: NlbConstruct,
 };
 

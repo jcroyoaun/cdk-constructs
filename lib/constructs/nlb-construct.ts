@@ -20,7 +20,7 @@ export class NlbConstruct extends Construct {
       this.internalNlb = this.createNetworkLoadBalancer(vpcRef, nlbConfig.internal, nlbConfig.common, 'internal');
       this.externalNlb = this.createNetworkLoadBalancer(vpcRef, nlbConfig.external, nlbConfig.common, 'external');
       
-      //this.addTags(props);
+      //this.addTags(nlbConfig);
       
       logger.success('Network Load Balancers created successfully', 'NlbConstruct');
     } catch (error) {
@@ -44,8 +44,8 @@ export class NlbConstruct extends Construct {
   }
 
   private addTags(props: any) {
-    const internalResourceName = `${props.config.nlb.internal.name}-nlb`;
-    const externalResourceName = `${props.config.nlb.external.name}-nlb`;
+    const internalResourceName = `${props.internal.name}-nlb`;
+    const externalResourceName = `${props.external.name}-nlb`;
     
     InstrideTagger.tagResources([this.internalNlb], internalResourceName, props);
     InstrideTagger.tagResources([this.externalNlb], externalResourceName, props);

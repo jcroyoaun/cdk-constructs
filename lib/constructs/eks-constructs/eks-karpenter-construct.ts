@@ -3,10 +3,11 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
-import { Construct } from 'constructs';
+import { Construct, IConstruct } from 'constructs';
 import { aws_eks as eks, aws_ec2 as ec2, CfnJson } from 'aws-cdk-lib';
 
 export class KarpenterConstruct extends Construct {
+  public readonly karpenterNodeRoleName: string;
   constructor(scope: Construct, id: string, props: any, cluster: eks.Cluster, vpcRef: ec2.IVpc) {
     super(scope, id);
 
@@ -36,21 +37,14 @@ export class KarpenterConstruct extends Construct {
         iam.ManagedPolicy.fromAwsManagedPolicyName('ElasticLoadBalancingFullAccess'),
       ],
     });
-
-    new eks.AccessEntry(this, 'KarpenterNodeRoleAccessEntry', {
-      cluster: cluster,
-      principal: karpenterNodeRole.roleArn,
-      accessEntryType: eks.AccessEntryType.STANDARD,
-      accessPolicies: [
-        eks.AccessPolicy.fromAccessPolicyName('system:node', {
-          accessScopeType: eks.AccessScopeType.CLUSTER,
-        }),
-      ],
-    });
+    
+    this.karpenterNodeRoleName = karpenterNodeRole.roleName;
 
 
-    const clusterNameJson = new CfnJson(this, 'ClusterName', {
-      value: cluster.clusterName,
+     new eks.CfnAccessEntry(this, 'KarpenterNodeRoleAccessEntry', {
+      clusterName: cluster.clusterName,
+      principalArn: karpenterNodeRole.roleArn,
+      type: eks.AccessEntryType.EC2_LINUX,
     });
 
     const karpenterControllerPolicy = new iam.ManagedPolicy(this, 'KarpenterControllerPolicy', {
@@ -346,11 +340,18 @@ export class KarpenterConstruct extends Construct {
       detailType: ['EC2 Instance State-change Notification'],
     });
 
-    this.installKarpenter(cluster, eksConfig.karpenter, eksConfig.clusterName);
+    const iamResources: IConstruct[] = [];
+
+    // Add IAM resources to the list
+    iamResources.push(karpenterNodeRole);
+    iamResources.push(karpenterControllerPolicy);
+    iamResources.push(karpenterPodRole);
+
+    this.installKarpenter(cluster, props.config.karpenter, props.config.clusterName, iamResources);
   }
 
-  private installKarpenter(cluster: eks.Cluster, config: any, clusterName: string) {
-    new eks.HelmChart(this, 'KarpenterChart', {
+  private installKarpenter(cluster: eks.Cluster, config: any, clusterName: string, iamResources: IConstruct[]) {
+    const karpenterChart = new eks.HelmChart(this, 'KarpenterChart', {
       cluster,
       chart: 'karpenter',
       repository: 'oci://public.ecr.aws/karpenter/karpenter',
@@ -376,6 +377,10 @@ export class KarpenterConstruct extends Construct {
           },
         },
       },
+    });
+
+    iamResources.forEach(iam => {
+      karpenterChart.node.addDependency(iam);
     });
   }
 }

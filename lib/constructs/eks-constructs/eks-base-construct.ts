@@ -1,13 +1,13 @@
 import * as cdk from 'aws-cdk-lib';
-import { aws_eks as eks, aws_ec2 as ec2, aws_iam as iam } from 'aws-cdk-lib';
+import { aws_eks as eks, aws_ec2 as ec2, aws_iam as iam, Tags } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { KubectlV30Layer } from '@aws-cdk/lambda-layer-kubectl-v30';
 
 export class EksBaseConstruct extends Construct {
   public readonly cluster: eks.Cluster;
-
   constructor(scope: Construct, id: string, props: any, vpcRef: ec2.IVpc) {
     super(scope, id);
+
 
     const eksConfig = props.config;
 
@@ -15,6 +15,7 @@ export class EksBaseConstruct extends Construct {
       this.cluster = this.createCluster(vpcRef, eksConfig);
       this.createNodeGroup(this.cluster, eksConfig, props.env);
       this.grantAdminAccess(eksConfig);
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Error creating EKS cluster: ${errorMessage}\nPlease check your EKS configuration in the YAML file.`);
@@ -29,6 +30,7 @@ export class EksBaseConstruct extends Construct {
         iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKSClusterPolicy'),
       ],
     });
+    
 
     return new eks.Cluster(this, eksConfig.clusterName, {
       version: eks.KubernetesVersion.of(eksConfig.version),
@@ -39,7 +41,7 @@ export class EksBaseConstruct extends Construct {
       clusterName: eksConfig.clusterName,
       defaultCapacity: 0,
       endpointAccess: eks.EndpointAccess.PUBLIC_AND_PRIVATE,
-      authenticationMode: eks.AuthenticationMode.API
+      authenticationMode: eks.AuthenticationMode.API,
     });
   }
 
@@ -69,12 +71,9 @@ export class EksBaseConstruct extends Construct {
         ? eks.CapacityType.SPOT 
         : eks.CapacityType.ON_DEMAND,
       labels: { role: envName },
-      tags: {
-        [`kubernetes.io/cluster/${eksConfig.clusterName}`]: 'shared',
-        'karpenter.sh/discovery': eksConfig.clusterName
-      },
     });
   }
+  
 
   private grantAdminAccess(eksConfig: any) {
     this.cluster.grantAccess('IAMAdminUser', 'arn:aws:iam::637423635181:user/iamadmin', [

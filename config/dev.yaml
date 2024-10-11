@@ -40,8 +40,6 @@ eks:
       version: v1.30.3-eksbuild.5
     - name: eks-pod-identity-agent
       version: v1.3.2-eksbuild.2
-    # - name: kubecost_kubecost
-    #   version: v1.96.0-eksbuild.1
   awsLoadBalancerController:
     namespace: kube-system
     serviceAccountName: aws-load-balancer-controller
@@ -55,28 +53,38 @@ eks:
     namespace: kube-system
   karpenter:
     version: "1.0.6"
-  
-rds:
-  auroraEngineVersion: "8.0.mysql_aurora.3.05.2"
-  instanceName: myRDS
-  writerInstanceClass: T3
-  writerInstanceSize: MEDIUM
-  writerAllowMajorVersionUpgrade: false 
-  writerAutoMinorVersionUpgrade: true
-  readersInstanceClass: T3
-  readersInstanceSize: MEDIUM
-  readersAllowMajorVersionUpgrade: false
-  readersAutoMinorVersionUpgrade: true
-  readersInstanceCount: 0
-  databasePrefix: db
-  allocatedStorage: 20
-  maxAllocatedStorage: 100
-  removalPolicy: DESTROY
-  deletionProtection: false
-  backupRetentionDays: 7
-  backupPreferredWindow: "03:00-04:00"
-  databaseName: mydb 
-  storageEncrypted: true
+    nodeRole: "KarpenterNodeRole"
+    nodePool:
+      arch: "amd64"
+      os: "linux"
+      capacityType: "spot"
+      instanceCategories: 
+        - "c"
+        - "m"
+        - "r"
+      instanceGeneration: "2"
+
+# rds:
+#   auroraEngineVersion: "8.0.mysql_aurora.3.05.2"
+#   instanceName: myRDS
+#   writerInstanceClass: T3
+#   writerInstanceSize: MEDIUM
+#   writerAllowMajorVersionUpgrade: false 
+#   writerAutoMinorVersionUpgrade: true
+#   readersInstanceClass: T3
+#   readersInstanceSize: MEDIUM
+#   readersAllowMajorVersionUpgrade: false
+#   readersAutoMinorVersionUpgrade: true
+#   readersInstanceCount: 0
+#   databasePrefix: db
+#   allocatedStorage: 20
+#   maxAllocatedStorage: 100
+#   removalPolicy: DESTROY
+#   deletionProtection: false
+#   backupRetentionDays: 7
+#   backupPreferredWindow: "03:00-04:00"
+#   databaseName: mydb 
+#   storageEncrypted: true
 
 nlb:
   internal:
